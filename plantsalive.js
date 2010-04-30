@@ -49,6 +49,9 @@
             current_user: {
               login: 'alex'
             },
+            current_space: {
+              name: 'co.up'
+            },
             formatted_now: function() {
               var now = new Date();
               return now.getFullYear() + '/' + (now.getMonth() + 1) + '/' + now.getDate() + ' ' +
@@ -84,8 +87,7 @@
           this.get('#/plants', function(context) {
             var plants = cobot.all({type: 'plant'});
             var waterings = cobot.all({type: 'watering'}, {limit: 20, descending: true});
-            console.log({plants: plants, waterings: waterings});
-            context.render_ms(templates.plants, {plants: plants, waterings: waterings});
+            context.render_ms(templates.plants, {plants: plants, waterings: waterings, space_name: cobot.current_space.name});
           });
           
           this.get('#/plants/new', function(context) {
@@ -122,7 +124,7 @@
         
         $.extend(templates, {
           plants: 
-            '<h2>Plants</h2>                                                  ' +
+            '<h2>Plants @ {{space_name}}</h2>                                 ' +
             '<ul>                                                             ' +
             '  {{#plants}}                                                    ' +
             '    <li>                                                         ' +
