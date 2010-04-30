@@ -11,10 +11,14 @@
       jQuery.noConflict();
       jQuery(function($) {
         $.cobot = function() {
+          var all = [{name: 'Plant1', description: 'Lounge left',
+            last_watered: '2010/04/30 10:24:00', last_watered_by: 'alex'}];
           return {
             all: function() {
-              return [{name: 'Plant1', description: 'Lounge left',
-                last_watered: '2010/04/30 10:24:00', last_watered_by: 'alex'}];
+              return all;
+            },
+            put: function(value) {
+              all.push(value);
             }
           };
         };
@@ -22,9 +26,16 @@
         var app_id = 'plantsalive',
           cobot = $.cobot(),
           templates = {};
-        document.write('<div id="' + app_id + '">Loading...</div>');
+        
+        $('#plantsalive_js').after('<div id="' + app_id + '">Loading...</div>');
+        
         var app = $.sammy(function() {
-          this.use(Sammy.Mustache);
+          this.helpers({
+            render_ms: function(template, data) {
+              var view = Mustache.to_html(template, data || {});
+              $(this.app.element_selector).html(view);
+            }
+          });
           
           this.get('#/', function(context) {
             context.redirect('#/plants');
@@ -32,19 +43,53 @@
           
           this.get('#/plants', function(context) {
             var plants = cobot.all({type: 'plant'});
-            $(context.app.element_selector).html(Mustache.to_html(templates.plants, {plants: plants}));
+            context.render_ms(templates.plants, {plants: plants});
+          });
+          
+          this.get('#/plants/new', function(context) {
+            $(context.app.element_selector).html(templates.new_plant);
+          });
+          
+          this.post('#/plants', function(context) {
+            var plant = {type: 'plant', name: context.params['plant_name'],
+              description: context.params['plant_description']};
+            cobot.put(plant);
+            context.redirect('#/');
+            return false;
           });
         });
         
-        templates.plants = 
-          '<ul>' +
-          '  {{#plants}}                                                  ' +
-          '    <li>                                                       ' +
-          '      {{name}}<br/>                                            ' +
-          '      Last Watered: {{last_watered}} by {{last_watered_by}}    ' +
-          '    </li>                                                      ' +
-          '  {{/plants}}                                                  ' +
-          '</ul>';
+        $.extend(templates, {
+          plants: 
+            '<ul>' +
+            '  {{#plants}}                                                  ' +
+            '    <li>                                                       ' +
+            '      {{name}}<br/>                                            ' +
+            '      {{#last_watered}}                                        ' +
+            '        Last Watered: {{last_watered}} by {{last_watered_by}}  ' +
+            '      {{/last_watered}}                                        ' +
+            '    </li>                                                      ' +
+            '  {{/plants}}                                                  ' +
+            '</ul>                                                          ' +
+            '<p><a href="#/plants/new">Add Plant</a></p>',
+          new_plant:
+            '<form action="#/plants" method="post">                                  ' +
+            '  <p>                                                                   ' +
+            '    <label for="plan_name">Name</label><br/>                            ' +
+            '    <input type="text" id="plant_name" name="plant_name"/>              ' +
+            '  </p>                                                                  ' +
+            '  <p>                                                                   ' +
+            '    <label for="plan_description">Description</label><br/>              ' +
+            '    <input type="text" id="plant_description" name="plant_description"/>' +
+            '  </p>                                                                  ' +
+            '  <p>                                                                   ' +
+            '    <input type="submit" value="Add Plant"/>                            ' +
+            '  </p>                                                                  ' +
+            '</form>                                                                 ' +
+            '<p><a href="#/">Back</a></p>'
+        });
+          
+        app.element_selector = '#' + app_id;
         app.run('#/');
       });
     });
