@@ -11,14 +11,48 @@
       jQuery.noConflict();
       jQuery(function($) {
         $.cobot = function() {
-          var all = [{name: 'Plant1', description: 'Lounge left',
-            last_watered: '2010/04/30 10:24:00', last_watered_by: 'alex'}];
+          var store = {};
           return {
-            all: function() {
+            all: function(conditions, options) {
+              options = options || {};
+              var all = [];
+              for(var i in store) {
+                if(conditions === undefined ||
+                    conditions['type'] === undefined ||
+                    conditions['type'] == store[i]['type']) {
+                  all.push(store[i]);
+                };
+              };
+              all.sort(function(a, b) {
+                if(a == b) {
+                  return 0;
+                } else {
+                  return a['created_at'] < b['created_at'] ? -1 : 1
+                };
+              });
+              if(options.descending) {
+                all.reverse();
+              };
+              if(options.limit) {
+                all = all.slice(0, options.limit - 1);
+              };
               return all;
             },
             put: function(value) {
-              all.push(value);
+              value._id = value._id || (new Date() * 1) + '';
+              value.created_at = this.formatted_now();
+              store[value._id] = value;
+            },
+            get: function(id) {
+              return store[id];
+            },
+            current_user: {
+              login: 'alex'
+            },
+            formatted_now: function() {
+              var now = new Date();
+              return now.getFullYear() + '/' + (now.getMonth() + 1) + '/' + now.getDate() + ' ' +
+                now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds();
             }
           };
         };
@@ -26,6 +60,9 @@
         var app_id = 'plantsalive',
           cobot = $.cobot(),
           templates = {};
+          
+        cobot.put({name: 'Plant1', description: 'Lounge left',
+          last_watered_at: '2010/04/30 10:24:00', last_watered_by: 'alex', type: 'plant'});
         
         $('#plantsalive_js').after('<div id="' + app_id + '">Loading...</div>');
         
@@ -34,6 +71,9 @@
             render_ms: function(template, data) {
               var view = Mustache.to_html(template, data || {});
               $(this.app.element_selector).html(view);
+            },
+            formatted_now: function() {
+              return cobot.formatted_now();
             }
           });
           
@@ -43,11 +83,18 @@
           
           this.get('#/plants', function(context) {
             var plants = cobot.all({type: 'plant'});
-            context.render_ms(templates.plants, {plants: plants});
+            var waterings = cobot.all({type: 'watering'}, {limit: 20, descending: true});
+            console.log({plants: plants, waterings: waterings});
+            context.render_ms(templates.plants, {plants: plants, waterings: waterings});
           });
           
           this.get('#/plants/new', function(context) {
             $(context.app.element_selector).html(templates.new_plant);
+          });
+          
+          this.get('#/plants/:id', function(context) {
+            var plant = cobot.get(context.params['id']);
+            context.render_ms(templates.plant, plant);
           });
           
           this.post('#/plants', function(context) {
@@ -57,21 +104,43 @@
             context.redirect('#/');
             return false;
           });
+          
+          this.post('#/waterings', function(context) {
+            var plant = cobot.get(context.params['plant_id']);
+            if(plant) {
+              var watering = {type: 'watering', watered_at: context.formatted_now(),
+                user: cobot.current_user.login, plant_id: plant._id, plant_name: plant.name};
+              plant.last_watered_at = watering.watered_at;
+              plant.last_watered_by = watering.user;
+              cobot.put(plant);
+              cobot.put(watering);
+            };
+            context.redirect('#/');
+            return false;
+          });
         });
         
         $.extend(templates, {
           plants: 
-            '<ul>' +
-            '  {{#plants}}                                                  ' +
-            '    <li>                                                       ' +
-            '      {{name}}<br/>                                            ' +
-            '      {{#last_watered}}                                        ' +
-            '        Last Watered: {{last_watered}} by {{last_watered_by}}  ' +
-            '      {{/last_watered}}                                        ' +
-            '    </li>                                                      ' +
-            '  {{/plants}}                                                  ' +
-            '</ul>                                                          ' +
-            '<p><a href="#/plants/new">Add Plant</a></p>',
+            '<h2>Plants</h2>                                                  ' +
+            '<ul>                                                             ' +
+            '  {{#plants}}                                                    ' +
+            '    <li>                                                         ' +
+            '      <a href="#/plants/{{_id}}">{{name}}</a><br/>               ' +
+            '      {{#last_watered_at}}                                       ' +
+            '        Last Watered: {{last_watered_at}} by {{last_watered_by}} ' +
+            '      {{/last_watered_at}}                                       ' +
+            '    </li>                                                        ' +
+            '  {{/plants}}                                                    ' +
+            '</ul>                                                            ' +
+            '<p><a href="#/plants/new">Add Plant</a></p>                      ' +
+            '<h2>Recent Activity</h2>                                         ' +
+            '<ul>                                                             ' +
+            '  {{#waterings}}                                                 ' +
+            '    <li>{{watered_at}}: {{user}} watered {{plant_name}}</li>     ' +
+            '  {{/waterings}}                                                 ' +
+            '</ul>                                                            '
+            ,
           new_plant:
             '<form action="#/plants" method="post">                                  ' +
             '  <p>                                                                   ' +
@@ -86,7 +155,18 @@
             '    <input type="submit" value="Add Plant"/>                            ' +
             '  </p>                                                                  ' +
             '</form>                                                                 ' +
-            '<p><a href="#/">Back</a></p>'
+            '<p><a href="#/">Back</a></p>',
+          plant:
+            '<h2>{{name}}</h2>                                              ' + 
+            '<p>{{description}}</p>                                         ' + 
+            '{{#last_watered_at}}                                              ' + 
+            '  <p>Last Watered: {{last_watered_at}} by {{last_watered_by}}</p> ' + 
+            '{{/last_watered_at}}                                              ' + 
+            '<form action="#/waterings" method="post">                      ' + 
+            '  <input type="hidden" value="{{_id}}" name="plant_id"/>       ' + 
+            '  <input type="submit" value="Water It"/>                      ' + 
+            '</form>                                                        ' + 
+            '<p><a href="#/">Back</a></p>                                   '
         });
           
         app.element_selector = '#' + app_id;
