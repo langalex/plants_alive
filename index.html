@@ -1,12 +1,16 @@
 <html>
+  <head>
+  </head>
   <body>
     <h1>Plants Alive!</h1>
-    <div style="width:640px;height:480px;border:1px solid gray">
-      <script type="text/javascript" src="fake_cobot.js" id="plantsalive_js"></script>
-      <script type="text/javascript" charset="utf-8">
-        var cobot = Cobot();
-      </script>
-      <script type="text/javascript" src="plantsalive.js" id="plantsalive_js"></script>
+    <div id="plantsalive">
+      Loading...
     </div>
+    <script type="text/javascript" src="fake_cobot.js"></script>
+    <script type="text/javascript" src="plantsalive.js"></script>
+    <script type="text/javascript" charset="utf-8">
+      var cobot = Cobot();
+      cobot_app.run(cobot, 'plantsalive')
+    </script>
   </body>
 </html>
