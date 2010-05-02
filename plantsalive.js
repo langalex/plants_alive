@@ -158,7 +158,7 @@ var cobot_app = {
       });
       
       function heredoc(fun) {
-        return (fun + '').replace('function () {', '').replace(/\}$/, '').replace('/*', '').replace('*/', '');
+        return (fun + '').replace('function () {', '').replace(/;?\s*\}$/, '').replace('/*', '').replace('*/', '');
       };
       
   }
