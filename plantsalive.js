@@ -71,83 +71,71 @@ var cobot_app = {
           });
         
           $.extend(templates, {
-            plants: heredoc(function() {
-              /*
-              <h2>Plants @ {{space_name}}</h2>
-              <ul>
-                {{#plants}}
-                  <li>               
-                    <a href="#/plants/{{_id}}">{{name}}</a><br/>
-                    {{#last_watered_at}} 
-                      Last Watered: {{last_watered_at}} by {{last_watered_by}}
-                    {{/last_watered_at}}
-                  </li>
-                {{/plants}}
-              </ul>
-              <p><a href="#/plants/new">Add Plant</a></p>
-              <h2>Recent Activity</h2>
-              <ul>
-                {{#waterings}}
-                  <li>{{watered_at}}: {{user}} watered {{plant_name}}</li>
-                {{/waterings}}
-              </ul>
-              */
-            }),
-            new_plant: heredoc(function() {
-              /*
-              <form action="#/plants" method="post">
-                <p>
-                  <label for="plan_name">Name</label><br/>
-                  <input type="text" id="plant_name" name="plant_name"/>
-                </p>
-                <p>
-                  <label for="plan_description">Description</label><br/>
-                  <input type="text" id="plant_description" name="plant_description"/>
-                </p>
-                <p>
-                  <input type="submit" value="Add Plant"/>
-                </p>
-              </form>
-              <p><a href="#/">Back</a></p>
-              */
-            }),
-            plant: heredoc(function() {
-              /*
-              <h2>{{name}}</h2>
-              <p>{{description}}</p>
-              {{#last_watered_at}}
-                <p>Last Watered: {{last_watered_at}} by {{last_watered_by}}</p>
-              {{/last_watered_at}}
-              <form action="#/waterings" method="post">
-                <input type="hidden" value="{{_id}}" name="plant_id"/>
-                <input type="submit" value="Water It"/>
-              </form>
-              <p><a href="#/">Back</a></p>
-              */
-            })
+            plants: 
+              '<h2>Plants @ {{space_name}}</h2>                                 ' +
+              '<ul>                                                             ' +
+              '  {{#plants}}                                                    ' +
+              '    <li>                                                         ' +
+              '      <a href="#/plants/{{_id}}">{{name}}</a><br/>               ' +
+              '      {{#last_watered_at}}                                       ' +
+              '        Last Watered: {{last_watered_at}} by {{last_watered_by}} ' +
+              '      {{/last_watered_at}}                                       ' +
+              '    </li>                                                        ' +
+              '  {{/plants}}                                                    ' +
+              '</ul>                                                            ' +
+              '<p><a href="#/plants/new">Add Plant</a></p>                      ' +
+              '<h2>Recent Activity</h2>                                         ' +
+              '<ul>                                                             ' +
+              '  {{#waterings}}                                                 ' +
+              '    <li>{{watered_at}}: {{user}} watered {{plant_name}}</li>     ' +
+              '  {{/waterings}}                                                 ' +
+              '</ul>',
+            new_plant: 
+              '<form action="#/plants" method="post">                                   ' +
+              '  <p>                                                                    ' +
+              '    <label for="plan_name">Name</label><br/>                             ' +
+              '    <input type="text" id="plant_name" name="plant_name"/>               ' +
+              '  </p>                                                                   ' +
+              '  <p>                                                                    ' +
+              '    <label for="plan_description">Description</label><br/>               ' +
+              '    <input type="text" id="plant_description" name="plant_description"/> ' +
+              '  </p>                                                                   ' +
+              '  <p>                                                                    ' +
+              '    <input type="submit" value="Add Plant"/>                             ' +
+              '  </p>                                                                   ' +
+              '</form>                                                                  ' +
+              '<p><a href="#/">Back</a></p>                                             ',
+            plant: 
+              '<h2>{{name}}</h2>                                                  ' +
+              '<p>{{description}}</p>                                             ' +
+              '{{#last_watered_at}}                                               ' +
+              '  <p>Last Watered: {{last_watered_at}} by {{last_watered_by}}</p>  ' +
+              '{{/last_watered_at}}                                               ' +
+              '<form action="#/waterings" method="post">                          ' +
+              '  <input type="hidden" value="{{_id}}" name="plant_id"/>           ' +
+              '  <input type="submit" value="Water It"/>                          ' +
+              '</form>                                                            ' +
+              '<p><a href="#/">Back</a></p>                                       '
           });
           
           $('head').append('')
           
-          var styles = heredoc(function() {
-            /*
-              <style>
-                .plantsalive {
-                  border: 1px solid green;
-                  padding: 20px;
-                  background-color: #CCFFCC;
-                  font-family: sans-serif;
-                  width: 400px;
-                  height: 250px;
-                  overflow: auto;
-                }
-                
-                .plantsalive h2 {
-                  font-size: 16px;
-                }
-              </style>
-            */
-          });
+          var styles = 
+              '<style>                        ' +
+              '  .plantsalive {               ' +
+              '    border: 1px solid green;   ' +
+              '    padding: 20px;             ' +
+              '    background-color: #CCFFCC; ' +
+              '    font-family: sans-serif;   ' +
+              '    width: 400px;              ' +
+              '    height: 250px;             ' +
+              '    overflow: auto;            ' +
+              '  }                            ' +
+              '                               ' +
+              '  .plantsalive h2 {            ' +
+              '    font-size: 16px;           ' +
+              '  }                            ' +
+              '</style>                       ';
           $('#' + app_id).addClass('plantsalive');
           $("head").append(styles);
           
@@ -156,11 +144,6 @@ var cobot_app = {
           app.run('#/');
         });
       });
-      
-      function heredoc(fun) {
-        return (fun + '').replace('function () {', '').replace(/;?\s*\}$/, '').replace('/*', '').replace('*/', '');
-      };
-      
   }
   
 };
